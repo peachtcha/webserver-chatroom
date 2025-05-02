@@ -1,0 +1,10 @@
+^D:\GITHUB_PROJECTS\USER\SIM_WEBSERVER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/Github_projects/user/sim_webserver -BD:/Github_projects/user/sim_webserver/build --check-stamp-file D:/Github_projects/user/sim_webserver/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

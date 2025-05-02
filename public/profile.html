@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人空间 - 聊天室</title>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航 -->
+        <header class="main-header">
+            <div class="logo">
+                <h1>聊天室</h1>
+            </div>
+            <nav class="main-nav">
+                <a href="/chat.html" class="nav-item back-to-chat">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-text">返回聊天</span>
+                </a>
+                <a href="/profile.html" class="nav-item active">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-text">个人空间</span>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="nav-item">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">退出</span>
+                </a>
+            </nav>
+        </header>
+
+        <!-- 个人资料展示区 -->
+        <section class="profile-container">
+            <div class="profile-header">
+                <div id="avatar-display" class="avatar avatar-1">A</div>
+                <div class="profile-info">
+                    <h2 id="username-display">加载中...</h2>
+                    <p id="signature-display" class="signature">加载中...</p>
+                </div>
+                <div class="profile-actions">
+                    <button id="backButton" class="btn btn-secondary" onclick="goBack()">
+                        <span>⬅️</span> 返回
+                    </button>
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="message-count">0</div>
+                    <div class="stat-label">消息数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="friend-count">0</div>
+                    <div class="stat-label">好友数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="group-count">0</div>
+                    <div class="stat-label">群组数</div>
+                </div>
+            </div>
+
+            <!-- 编辑资料区域 -->
+            <div class="profile-edit-section">
+                <h3>编辑个人资料</h3>
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" id="username" name="username" maxlength="20" placeholder="请输入用户名">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signature">个性签名</label>
+                        <textarea id="signature" name="signature" placeholder="写点什么介绍自己吧..."></textarea>
+                        <div class="char-count">
+                            <span id="char-counter">0/100</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>头像颜色</label>
+                        <div class="avatar-options">
+                            <div class="avatar-option avatar-1" data-color="1">
+                                <div class="avatar-preview">A</div>
+                            </div>
+                            <div class="avatar-option avatar-2" data-color="2">
+                                <div class="avatar-preview">A</div>
+                            </div>
+                            <div class="avatar-option avatar-3" data-color="3">
+                                <div class="avatar-preview">A</div>
+                            </div>
+                            <div class="avatar-option avatar-4" data-color="4">
+                                <div class="avatar-preview">A</div>
+                            </div>
+                            <div class="avatar-option avatar-5" data-color="5">
+                                <div class="avatar-preview">A</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" id="reset-profile" class="btn btn-secondary">重置</button>
+                        <button type="button" id="save-profile" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- 消息提示 -->
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script src="/js/profile.js"></script>
+</body>
+</html> 

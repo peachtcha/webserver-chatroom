@@ -1,0 +1,10 @@
+^D:\GITHUB_PROJECTS\USER\SIM_WEBSERVER\BUILD\CMAKEFILES\3846BD83B2EA0E6C3817D17CEEC2F96E\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/Github_projects/user/sim_webserver -BD:/Github_projects/user/sim_webserver/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/Github_projects/user/sim_webserver/build/sim_webserver.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

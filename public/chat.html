@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SimWebServer - 实时聊天室</title>
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="icon" href="images/favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 直接在HTML中添加样式，确保优先级最高 */
+        #profileButton {
+            position: fixed; /* 改为固定定位，不随滚动变化 */
+            right: 20px;
+            top: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6e8efb, #4a90e2);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        
+        #profileButton.visible {
+            opacity: 1;
+            transform: translateY(0);
+            animation: fadeInDown 0.5s ease forwards;
+        }
+        
+        #profileButton.highlight {
+            animation: pulse 1s ease;
+        }
+        
+        #profileButton:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(135deg, #5d7dea, #3a80d2);
+        }
+        
+        #profileButton svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(74, 144, 226, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); }
+        }
+        
+        @keyframes fadeInDown {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 响应式样式 */
+        @media (max-width: 768px) {
+            #profileButton {
+                top: 10px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 将个人空间按钮移到body的直接子元素，确保它不会被其他元素影响 -->
+    <a id="profileButton" href="/profile.html">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" fill="white"/>
+            <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" fill="white"/>
+        </svg>
+        个人空间
+    </a>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>🌟 实时聊天室</h2>
+        </div>
+        
+        <div id="status" class="status disconnected">未连接</div>
+        
+        <div id="onlineUsers" class="online-users">在线用户: 0 人</div>
+        
+        <div class="login-container">
+            <input type="text" id="usernameInput" placeholder="输入用户名" disabled>
+            <button id="loginButton" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                    <polyline points="10 17 15 12 10 7"></polyline>
+                    <line x1="15" y1="12" x2="3" y2="12"></line>
+                </svg>
+                登录
+            </button>
+        </div>
+        
+        <div id="messages" class="messages">
+            <!-- 此处将显示聊天消息 -->
+        </div>
+        
+        <!-- 回到最新消息的箭头 -->
+        <div id="scrollToBottom" class="scroll-to-bottom hidden">
+            <div class="arrow-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 19V5M5 12l7 7 7-7"/>
+                </svg>
+            </div>
+            <div id="unreadCount" class="unread-count">0</div>
+        </div>
+        
+        <div id="typingIndicator" class="typing-indicator"></div>
+        
+        <div class="input-container">
+            <!-- 表情按钮 -->
+            <button id="emojiButton" class="emoji-button" title="插入表情" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                </svg>
+            </button>
+            
+            <!-- 图片上传按钮 -->
+            <button id="imageButton" class="media-button" title="发送图片" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+            </button>
+            
+            <!-- 隐藏的图片上传输入 -->
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            
+            <!-- 语音录制按钮 -->
+            <button id="voiceButton" class="media-button" title="录制语音" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
+            
+            <input type="text" id="messageInput" placeholder="输入消息..." disabled>
+            <button id="sendButton" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                发送
+            </button>
+        </div>
+        
+        <!-- 表情选择面板 -->
+        <div id="emojiPanel" class="emoji-panel hidden">
+            <div class="emoji-tabs">
+                <button class="emoji-tab active" data-category="recent">最近</button>
+                <button class="emoji-tab" data-category="smileys">表情</button>
+                <button class="emoji-tab" data-category="gestures">手势</button>
+                <button class="emoji-tab" data-category="objects">物品</button>
+            </div>
+            <div class="emoji-content">
+                <div class="emoji-category" data-category="recent">
+                    <!-- 最近使用的表情将动态填充 -->
+                </div>
+                <div class="emoji-category active" data-category="smileys">
+                    <button class="emoji-item" data-emoji="😀">😀</button>
+                    <button class="emoji-item" data-emoji="😁">😁</button>
+                    <button class="emoji-item" data-emoji="😂">😂</button>
+                    <button class="emoji-item" data-emoji="🤣">🤣</button>
+                    <button class="emoji-item" data-emoji="😊">😊</button>
+                    <button class="emoji-item" data-emoji="😇">😇</button>
+                    <button class="emoji-item" data-emoji="🙂">🙂</button>
+                    <button class="emoji-item" data-emoji="😉">😉</button>
+                    <button class="emoji-item" data-emoji="😍">😍</button>
+                    <button class="emoji-item" data-emoji="🥰">🥰</button>
+                    <button class="emoji-item" data-emoji="😘">😘</button>
+                    <button class="emoji-item" data-emoji="😋">😋</button>
+                    <button class="emoji-item" data-emoji="😎">😎</button>
+                    <button class="emoji-item" data-emoji="🤔">🤔</button>
+                    <button class="emoji-item" data-emoji="🤗">🤗</button>
+                    <button class="emoji-item" data-emoji="🤭">🤭</button>
+                    <button class="emoji-item" data-emoji="🤫">🤫</button>
+                    <button class="emoji-item" data-emoji="🤐">🤐</button>
+                    <button class="emoji-item" data-emoji="😏">😏</button>
+                    <button class="emoji-item" data-emoji="😒">😒</button>
+                </div>
+                <div class="emoji-category" data-category="gestures">
+                    <button class="emoji-item" data-emoji="👍">👍</button>
+                    <button class="emoji-item" data-emoji="👎">👎</button>
+                    <button class="emoji-item" data-emoji="👌">👌</button>
+                    <button class="emoji-item" data-emoji="✌️">✌️</button>
+                    <button class="emoji-item" data-emoji="🤞">🤞</button>
+                    <button class="emoji-item" data-emoji="🤟">🤟</button>
+                    <button class="emoji-item" data-emoji="🤘">🤘</button>
+                    <button class="emoji-item" data-emoji="👏">👏</button>
+                    <button class="emoji-item" data-emoji="🙌">🙌</button>
+                    <button class="emoji-item" data-emoji="👐">👐</button>
+                    <button class="emoji-item" data-emoji="🤲">🤲</button>
+                    <button class="emoji-item" data-emoji="🤝">🤝</button>
+                    <button class="emoji-item" data-emoji="🙏">🙏</button>
+                    <button class="emoji-item" data-emoji="✋">✋</button>
+                    <button class="emoji-item" data-emoji="👊">👊</button>
+                </div>
+                <div class="emoji-category" data-category="objects">
+                    <button class="emoji-item" data-emoji="❤️">❤️</button>
+                    <button class="emoji-item" data-emoji="🧡">🧡</button>
+                    <button class="emoji-item" data-emoji="💛">💛</button>
+                    <button class="emoji-item" data-emoji="💚">💚</button>
+                    <button class="emoji-item" data-emoji="💙">💙</button>
+                    <button class="emoji-item" data-emoji="💜">💜</button>
+                    <button class="emoji-item" data-emoji="🖤">🖤</button>
+                    <button class="emoji-item" data-emoji="💯">💯</button>
+                    <button class="emoji-item" data-emoji="💢">💢</button>
+                    <button class="emoji-item" data-emoji="💥">💥</button>
+                    <button class="emoji-item" data-emoji="💫">💫</button>
+                    <button class="emoji-item" data-emoji="💬">💬</button>
+                    <button class="emoji-item" data-emoji="🗯️">🗯️</button>
+                    <button class="emoji-item" data-emoji="💭">💭</button>
+                    <button class="emoji-item" data-emoji="🎵">🎵</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 语音录制面板 -->
+        <div id="voiceRecordPanel" class="voice-record-panel hidden">
+            <div class="voice-record-status">
+                <span id="recordingStatus">点击开始录音</span>
+                <span id="recordingTime" class="recording-time">00:00</span>
+            </div>
+            <div class="voice-record-controls">
+                <button id="startRecordButton" class="start-record-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                </button>
+                <button id="stopRecordButton" class="stop-record-button hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="6" y="6" width="12" height="12" rx="1"></rect>
+                    </svg>
+                </button>
+                <button id="cancelRecordButton" class="cancel-record-button hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+                <button id="sendVoiceButton" class="send-voice-button hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div class="voice-wave-container">
+                <div id="voiceWaveform" class="voice-waveform"></div>
+            </div>
+        </div>
+        
+        <!-- 图片预览面板 -->
+        <div id="imagePreviewPanel" class="image-preview-panel hidden">
+            <div class="image-preview-header">
+                <h3>图片预览</h3>
+                <button id="closeImagePreviewButton" class="close-preview-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="image-preview-content">
+                <img id="imagePreview" src="" alt="预览图片">
+            </div>
+            <div class="image-preview-footer">
+                <button id="sendImageButton" class="send-image-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    发送图片
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/chat.js"></script>
+</body>
+</html>
