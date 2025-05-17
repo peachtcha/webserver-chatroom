@@ -83,7 +83,7 @@ docker run -d --name chatroom-app -p 9091:9091 chatroom
 ## 访问地址
 
 - **本地访问**：http://localhost:9091
-- **公网访问**：http://119.3.181.67:9091
+- **公网访问**：http://ip:9091
 
 ## 已知问题
 

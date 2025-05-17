@@ -725,7 +725,7 @@ setInterval(() => {
 
 // 启动服务器
 const PORT = process.env.PORT || 9091;
-server.listen(PORT, () => {
-  console.log(`服务器运行在 http://localhost:${PORT}/`);
-  console.log(`WebSocket 服务器运行在 ws://localhost:${PORT}/ws`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`服务器运行在 http://119.3.181.67:${PORT}/`);
+  console.log(`WebSocket 服务器运行在 ws://119.3.181.67:${PORT}/ws`);
 }); 
